@@ -15,7 +15,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK $MACROS_ALL $MACROS_LOCAL $MACROS_N
 @EXPORT = qw(
 	
 );
-$VERSION = '0.2';
+$VERSION = '0.3';
 
 $Devel::DebugInit::MACROS_NONE  = 0;
 $Devel::DebugInit::MACROS_LOCAL = 1;
@@ -29,22 +29,24 @@ initialization files from C header file macros
 =head1 SYNOPSIS
 
   use Devel::DebugInit::GDB;
-  my $gdb = new Devel::DebugInit::GDB 'filename' => "/my/path/to/library.h";
-  $gdb->print("/my/path/to/library/.gdbinit");
+  my $gdb = new Devel::DebugInit::GDB 'filenames' => ["/my/path/to/library.h"];
+  $gdb->write("/my/path/to/library/.gdbinit");
 
 =head1 DESCRIPTION
 
-This module attempts to give developers an extremely simple and
-automated way of creating debugger initialization files specific for a
-given project. These initialization files contain user-defined
-functions built from header file macro definitions.
+Devel::DebugInit is aimed at C/C++ developers who want access to C
+macro definitions from within a debugger. It provides a simple and
+automated way of creating debugger initialization files for a specific
+project. The initialization files created contain user-defined
+functions built from the macro definitions in the project's header
+files.
 
-By calling new(), the files specified by the 'filenames' parameter is
-parsed by the C preprocessor, and all macros #define'd in the file (and
-if desired, all macros #define'd in all files #include'd in that file),
-will be parsed and expanded. By then calling the print() method, these
-macros can be written out to an output file in the format of
-user-defined functions specific for that debugger.
+By calling new(), the files specified by the 'filenames' parameter are
+parsed by the C preprocessor, and all macros #define'd in the file
+(and if desired, all macros #define'd by all #include'd files as
+well), will be parsed and expanded. By then calling the write()
+method, these macros can be written to an output file in the format of
+user-defined functions specific for your debugger.
 
 By automating the process, a new file can be created whenever the code
 of a project changes, and that way there will not be antiquated copies
@@ -52,10 +54,13 @@ lying around to trap the unwary.
 
 =head1 NOTES
 
-This module requires the use of one of the debugger specific backend
-modules, such as Devel::DebugInit::GDB, which supply output routines
-which are specific for that debugger. It also requires both the
-C::Scan and Data::Flow modules and will not function without them.
+This module requires the use of one of the debugger-specific backend
+modules, such as Devel::DebugInit::GDB which is supplied with
+DebugInit. The backends supply the output routines which are specific
+for that debugger. 
+
+This module also requires both the C::Scan and Data::Flow modules and
+will not function without them.
 
 =head1 WHY CARE?
 
@@ -111,30 +116,30 @@ MACROS_ALL, MACROS_LOCAL, and MACROS_NONE.
 These flags can be used to control what macros go into the print
 tables that Devel::DebugInit uses to create the output file. The
 MACROS_ALL flag instructs DebugInit to included all macros of that
-type in the print table. To avoid printing out all of the system level
+type in the output table. To avoid printing out all of the system level
 macros that can get #include'd you can use the MACROS_LOCAL flag. This
 indicates that only macros actually #define'd in that file should be
 stored, and macros #define'd in other files which are #include'd into
 the file should NOT be stored (they are, however, still made available
 for expansion purposes). The MACROS_LOCAL flag is the default for
 macros with arguments. Finally, the MACROS_NONE flag indicates that no
-macros of that type should be put in the print table. The MACROS_NONE
+macros of that type should be put in the output table. The MACROS_NONE
 flag is the default for the simple macros.
 
-=head2 Print Tables and Lookup Tables
+=head2 Output Tables and Lookup Tables
 
 Devel::DebugInit has two separate groups of tables that it uses -
-lookup tables for expanding macro definitions and print tables for
+lookup tables for expanding macro definitions and output tables for
 printing the fully expanded macros. The lookup tables always include
-all macros that a given file has access to, but the print tables may
+all macros that a given file has access to, but the output tables may
 have many fewer. Because the user-defined functions of some debuggers
 can be very limited, Devel::DebugInit fully expands all macros stored
-in the print tables before writing them to a file. In this way, any
+in the output tables before writing them to a file. In this way, any
 macro which utilized other macros in its body will have those expanded
 in place. So by the end of the expansion process, all macros will be
 self defined and not rely on any other macro definition. Each macro in
-the print tables is expanded in this manner using the definitions in
-the lookup tables. Using separate lookup tables and print tables
+the output tables is expanded in this manner using the definitions in
+the lookup tables. Using separate lookup tables and output tables
 allows users to print out only those macros they care about while
 still be able to fully expand all macros.
 
@@ -151,9 +156,9 @@ subclass. Each Devel::DebugInit subclass takes a list of option value
 pairs as optional arguments to new. Currently there are three
 recognized options 'filenames', 'macros_args', and
 'macros_no_args'. The 'filenames' option controls which file is used
-for creating the output. The 'macros_args' option controls what level
-of printing should be done for macros with arguments. The
-'macro_no_args' option controls printing for simple macros. For
+for creating the output. The 'macros_args' option controls the level
+of output support for macros with arguments. The 'macro_no_args'
+option controls the level of output support for simple macros. For
 example, to make a .gdbinit file useful for debugging perl or perl
 XSUBs try the following:
 
@@ -162,21 +167,20 @@ XSUBs try the following:
        'macros_args'    => $Devel::DebugInit::MACROS_ALL,
        'macros_no_args' => $Devel::DebugInit::MACROS_ALL;
 
-   $gdb->print();
+   $gdb->write();
 
-When printed, this will create a file that is about 110k in size and
+When written, this will create a file that is about 110k in size and
 have about 1750 user-defined functions. So it may be useful to limit
 it in scope somewhat. It is not clear that simple macros are useful
 from within a debugger, so the default value for 'macros_no_args' is
-$Devel::DebugInit::MACROS_NONE, and to avoid printing all system level
-macros, the default for 'macros_args' is
-$Devel::DebugInit::MACROS_LOCAL. NOTE that by using MACROS_LOCAL, you
-will inhibit printing of all macros not #define'd in the file listed,
-both from local header files and system headers alike. To get around
-this multiple files can be included in the array ref for the
-'filenames' option. Each files macros are added to a common lookup
-table, but only the macros #defined in each file are printed. So could
-do the following:
+MACROS_NONE, and to avoid printing all system level macros, the
+default for 'macros_args' is MACROS_LOCAL. NOTE that by using
+MACROS_LOCAL, you will inhibit printing of all macros not #define'd in
+the file listed, both from local header files and system headers
+alike. To get around this multiple files can be included in the array
+ref for the 'filenames' option. Each files macros are added to a
+common lookup table, but only the macros #defined in each file are
+printed. So could do the following:
 
    $gdb = new Devel::DebugInit::GDB 
        'filenames' => ["$Config{'archlib'}/CORE/perl.h",
@@ -185,17 +189,17 @@ do the following:
        'macros_args'    => $Devel::DebugInit::MACROS_LOCAL,
        'macros_no_args' => $Devel::DebugInit::MACROS_NONE;
 
-   $gdb->print();
+   $gdb->write();
 
 This reduces the output file to only 21k and 250 or so macros.
 
-=head2 print()
-=head2 print($filename)
+=head2 write()
+=head2 write($filename)
 
 This function is overloaded by each of the debugger specific
 subclasses to produce output recognized by that debugger. If $filename
 is not given, it defaults to something reasonable for that
-debugger. All macros in the print table for each macro type (macros
+debugger. All macros in the output table for each macro type (macros
 with arguments and simple macros) will be printed if it passes
 scrutiny by the L<scan()> method. See the L<INTERNALS> section for
 more details on controlling what macros are stored in the print
@@ -205,7 +209,7 @@ tables.
 
 The only other method of interest to users of this module is the
 scan() method which is also overloaded by each backend subclass. This
-method is called by print() to ascertain whether or not a given macro
+method is called by write() to ascertain whether or not a given macro
 should be written out to the output file. By default, scan() stops
 undefined macros, blank macros (e.g. macros such as <#define VMS>
 which are usually just conditional compiler flags and of no use in a
@@ -336,7 +340,7 @@ sub setup_tables {
   $self->set_no_args_lookup($self->get('defines_no_args_full'));
   $self->set_args_lookup($self->get('defines_args_full'));
   
-  # set up the print tables
+  # set up the output tables
   if ($ARGS == $Devel::DebugInit::MACROS_ALL) {
     $self->set_args($self->get('defines_args_full'));
   } elsif ($ARGS == $Devel::DebugInit::MACROS_LOCAL) {
@@ -360,7 +364,7 @@ sub defines_no_args {
   }
 
   # this recursively refines each macro definition in the lookup table
-  # and then stores the final fully expanded value in the print table
+  # and then stores the final fully expanded value in the output table
   foreach $key (keys %{$defines}) {
     $define = C::Define::NoArgs->new($debug,$self,$key); 
     $define->keep($define->expand());
@@ -378,7 +382,7 @@ sub defines_args {
   }
 
   # this recursively refines each macro definition in the lookup table
-  # and then stores the final fully expanded value in the print table
+  # and then stores the final fully expanded value in the output table
   foreach $key (keys %{$defines}) {
     $define = C::Define::Args->new($debug,$self,$key); 
     $define->keep($define->expand());
@@ -400,7 +404,7 @@ sub strip {
   return $define;
 }  
 
-# these methods operate on the print tables
+# these methods operate on the output tables
 sub get_args {
   my ($self) = @_;
   return $self->[1]->{'args'};
@@ -544,7 +548,7 @@ package C::Define::NoArgs;
 @C::Define::NoArgs::ISA = ('C::Define');
 
 # NOTE: get() and set() only affect the lookup tables, keep()
-# changes the value in the print table 
+# changes the value in the output table 
 sub get {
   my $self = shift;
   my $hash = $self->file()->get_no_args_lookup();
@@ -578,7 +582,7 @@ package C::Define::Args;
 sub args {return 1;}
 
 # NOTE: get() and set() only affect the lookup tables, keep()
-# changes the value in the print table 
+# changes the value in the output table 
 sub get {
   my $self = shift;
   my $hash = $self->file()->get_args_lookup();

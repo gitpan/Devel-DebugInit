@@ -26,7 +26,7 @@ C header file macros
   use Config;
   my $g = new Devel::DebugInit::GDB "filename => $Config{'archlib'}/CORE/perl.h";
 
-  $g->print("~/perl5.00403/.gdbinit");
+  $g->write("~/perl5.00403/.gdbinit");
 
 =head1 DESCRIPTION
 
@@ -41,17 +41,17 @@ that are specific for gdb. See L<Devel::DebugInit> for more information.
 
 =head1 METHODS
 
-=head2 print()
-=head2 print($filename)
+=head2 write()
+=head2 write($filename)
 
-This method prints out the macros to $filename, which defaults to
-"./gdbinit".  It first prints out any macros without arguments (if
+This method outputs the macros to $filename, which defaults to
+"./gdbinit".  It first writes out any macros without arguments (if
 enabled, see L<Devel::DebugInit/INTERNALS> for more info), and
-then it prints any macros with arguments.
+then it writes any macros with arguments.
 
 =cut
 
-sub print {
+sub write {
   my ($gdb,$outfile) = @_;
   my ($key,$defines,$file);
   $outfile = ".gdbinit" unless defined $outfile;
@@ -67,7 +67,8 @@ sub print {
     $defines = $file->get_no_args();
     if (defined $defines) {
       print INIT "# macros with no arguments\n\n";
-      foreach $key (keys %{$defines}) {
+      # sort keys to print them in alphabetical order
+      foreach $key (sort keys %{$defines}) {
 	my $macro = $defines->{$key};
 	# The follow lines filter what to print
 	
@@ -91,7 +92,8 @@ sub print {
     $defines = $file->get_args();
     if (defined $defines) {
       print INIT "\n\n# macros with arguments\n\n";
-      foreach $key (keys %{$defines}) {
+      # sort keys to print them in alphabetical order
+      foreach $key (sort keys %{$defines}) {
 	my $args  = $defines->{$key}->[0]; # first slot is the arg list
 	my $macro = $defines->{$key}->[1]; # second slot is the macro
 	
@@ -175,6 +177,7 @@ sub scan {
      finish|
      nexti|
      stepi|
+     continue|
      signal|
      detach|
      attach|

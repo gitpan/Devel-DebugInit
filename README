@@ -22,17 +22,20 @@ helpful, I'm very happy, if not, don't hold me responsible.
 
 WHAT
 ====
-Devel::DebugInit attempts to give developers an extremely simple and
-automated way of creating debugger initialization files specific for a
-given project. These initialization files contain user-defined
-functions built from header file macro definitions.
 
-By calling new(), the files specified by the 'filenames' parameter is
-parsed by the C preprocessor, and all macros #define'd in the file (and
-if desired, all macros #define'd in all files #include'd in that file),
-will be parsed and expanded. By then calling the print() method, these
-macros can be written out to an output file in the format of
-user-defined functions specific for that debugger.
+Devel::DebugInit is aimed at C/C++ developers who want access to C
+macro definitions from within a debugger. It provides a simple and
+automated way of creating debugger initialization files for a specific
+project. The initialization files created contain user-defined
+functions built from the macro definitions in the project's header
+files.
+
+By calling new(), the files specified by the 'filenames' parameter are
+parsed by the C preprocessor, and all macros #define'd in the file
+(and if desired, all macros #define'd by all #include'd files as
+well), will be parsed and expanded. By then calling the write()
+method, these macros can be written to an output file in the format of
+user-defined functions specific for your debugger.
 
 By automating the process, a new file can be created whenever the code
 of a project changes, and that way there will not be antiquated copies
@@ -44,7 +47,7 @@ INSTALL
 Devel::DebugInit::*
 ---
 In order to write out an initialization file, you will need one of the
-debugger specific backends. The GDB backend is supplied with the
+debugger-specific backends. The GDB backend is supplied with the
 module (and it is currently the only one available ;-). So if this
 works for you, great! If you are interested in writing a backend for a
 different debugger, please volunteer!
@@ -83,18 +86,19 @@ When you have an up-to-date C::Scan and Data::Flow installed:
 
 RUNNING
 =======
-Read the included pod documentation and see ./test.pl and
-DebugInit/test.pl to get an idea of how to use this module.
+Read the included pod documentation and see ./t/DebugInit.t and
+t/GDB.t to get a more detailed idea of how to use this module.
 
 NOTES
 =====
 There are currently a number of ways to customize the output of this
-program, but if you can think of more useful ones, let me know!
+program, but if you can think of more useful ones, I'd like to hear
+about them.
 
 AUTHOR INFO and BUG REPORTS
 ===========================
 Jason E. Stewart
 jason@cs.unm.edu. 
 
-
-Enjoy!
+I enjoy writing software that makes peoples lives better and makes
+their work more enjoyable. If you like this module, let me know! 
