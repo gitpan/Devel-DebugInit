@@ -4,6 +4,7 @@ It might be a bug that I don't look to see if there is an opening '('
 following a token in resolve(). I need to find out if you can have
 both a simple macro and a macro with args with the same name.
 
-Decide what to do about macro's with a leading underscore:
-1) Turned off by default in scan(), with a global variable for control.
-2) Turned off in &define_(no_)args, with a variable to control.
+Come up with a better way to resolve macros from #include'd system
+header files, <stdio.h>, and user header files,
+"mystring.h". Currently we're restricted to the functionality that
+C::Scan provides, but maybe it can be augmented.

@@ -15,7 +15,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK $MACROS_ALL $MACROS_LOCAL $MACROS_N
 @EXPORT = qw(
 	
 );
-$VERSION = '0.1';
+$VERSION = '0.2';
 
 $Devel::DebugInit::MACROS_NONE  = 0;
 $Devel::DebugInit::MACROS_LOCAL = 1;

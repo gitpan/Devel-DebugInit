@@ -1,5 +1,6 @@
 Revision history for Perl extension GDBinit.
 
-0.01  Thu Aug 14 14:17:08 1997
+0.1  Thu Aug 14 14:17:08 1997
 	- original version; created by h2xs 1.18
-
+0.2  Wed Aug 20 16:46:09 MDT 1997
+	forgot to include README in v0.1
